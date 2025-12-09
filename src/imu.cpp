@@ -95,9 +95,17 @@ void imu_read(DroneState *drone) {
     if(EEPROM.read(30) & 0b10000000) gyro_yaw *= -1;
 
     // Filtre Logiciel (0.2 / 0.8)
-    drone->gyro_roll_input = (drone->gyro_roll_input * 0.2) + ((gyro_roll * GYRO_SCALE_INV) * 0.8);
-    drone->gyro_pitch_input = (drone->gyro_pitch_input * 0.2) + ((gyro_pitch * GYRO_SCALE_INV) * 0.8);
-    drone->gyro_yaw_input = (drone->gyro_yaw_input * 0.2) + ((gyro_yaw * GYRO_SCALE_INV) * 0.8);
+    // --- Filtre PT1 Amélioré ---
+    // Conversion en deg/s brute
+    float gyro_roll_raw = gyro_roll * GYRO_SCALE_INV;
+    float gyro_pitch_raw = gyro_pitch * GYRO_SCALE_INV;
+    float gyro_yaw_raw = gyro_yaw * GYRO_SCALE_INV;
+
+    // Application du filtre : Out = Old + Alpha * (Raw - Old)
+    // Cela lisse le signal tout en minimisant le retard
+    drone->gyro_roll_input = drone->gyro_roll_input + FILTER_ALPHA * (gyro_roll_raw - drone->gyro_roll_input);
+    drone->gyro_pitch_input = drone->gyro_pitch_input + FILTER_ALPHA * (gyro_pitch_raw - drone->gyro_pitch_input);
+    drone->gyro_yaw_input = drone->gyro_yaw_input + FILTER_ALPHA * (gyro_yaw_raw - drone->gyro_yaw_input);
 
     // Calculs Angles (Trigo)
     drone->angle_pitch += gyro_pitch * 0.0000611;

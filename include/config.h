@@ -25,6 +25,13 @@
 #define PID_MAX_YAW 400
 
 // --- Filtres & Optimisations ---
+
+// --- Filtres & Optimisations ---
+#define GYRO_FILTER_HZ 60.0       // Fréquence de coupure (Commencer vers 60-80Hz)
+#define LOOP_TIME_SEC 0.004       // 4000us = 0.004s
+// Calcul automatique du coefficient Alpha (ne pas toucher)
+#define FILTER_ALPHA (LOOP_TIME_SEC / (LOOP_TIME_SEC + (1.0 / (2.0 * 3.14159 * GYRO_FILTER_HZ))))
+
 #define D_FILTER_COEFF 0.35
 #define GYRO_SCALE_INV (1.0 / 65.5)
 #define PID_SETPOINT_SCALE_INV (1.0 / 4.0) // Pour Roll/Pitch

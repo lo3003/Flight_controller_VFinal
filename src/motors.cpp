@@ -16,25 +16,46 @@ void motors_stop() {
 void motors_mix(DroneState *drone) {
     int throttle = drone->channel_3;
     
-    // Bride de sécurité
+    // 1. Clamp du Throttle commande
     if (throttle > MAX_THROTTLE_FLIGHT) throttle = MAX_THROTTLE_FLIGHT;
 
-    // Mixage (Divisé par 2 pour douceur au sol, selon ton code)
-    // NB: J'ai retiré la logique de compensation batterie pour simplifier le .cpp
-    // mais tu peux la remettre ici si tu utilises ta mesure voltage.
-    
-    esc_1 = throttle - (drone->pid_output_pitch * 0.5) + (drone->pid_output_roll * 0.5) - (drone->pid_output_yaw * 0.5); 
-    esc_2 = throttle + (drone->pid_output_pitch * 0.5) + (drone->pid_output_roll * 0.5) + (drone->pid_output_yaw * 0.5); 
-    esc_3 = throttle + (drone->pid_output_pitch * 0.5) - (drone->pid_output_roll * 0.5) - (drone->pid_output_yaw * 0.5); 
-    esc_4 = throttle - (drone->pid_output_pitch * 0.5) - (drone->pid_output_roll * 0.5) + (drone->pid_output_yaw * 0.5); 
+    // 2. Calcul du Mixage Brut (Sans limite pour l'instant)
+    // On calcule en variables locales pour pouvoir analyser les dépassements
+    int esc_1_calc = throttle - (drone->pid_output_pitch * 0.5) + (drone->pid_output_roll * 0.5) - (drone->pid_output_yaw * 0.5); 
+    int esc_2_calc = throttle + (drone->pid_output_pitch * 0.5) + (drone->pid_output_roll * 0.5) + (drone->pid_output_yaw * 0.5); 
+    int esc_3_calc = throttle + (drone->pid_output_pitch * 0.5) - (drone->pid_output_roll * 0.5) - (drone->pid_output_yaw * 0.5); 
+    int esc_4_calc = throttle - (drone->pid_output_pitch * 0.5) - (drone->pid_output_roll * 0.5) + (drone->pid_output_yaw * 0.5); 
 
-    // Ralenti minimum
+    // 3. Gestion de la Saturation Max (Airmode logic)
+    // On cherche la commande moteur la plus élevée
+    int max_esc = esc_1_calc;
+    if(esc_2_calc > max_esc) max_esc = esc_2_calc;
+    if(esc_3_calc > max_esc) max_esc = esc_3_calc;
+    if(esc_4_calc > max_esc) max_esc = esc_4_calc;
+
+    // Si un moteur demande plus que le max autorisé, on réduit TOUT le monde
+    // Cela préserve le différentiel (PID) nécessaire pour tourner
+    if(max_esc > MAX_THROTTLE_FLIGHT) {
+        int overshoot = max_esc - MAX_THROTTLE_FLIGHT;
+        esc_1_calc -= overshoot;
+        esc_2_calc -= overshoot;
+        esc_3_calc -= overshoot;
+        esc_4_calc -= overshoot;
+    }
+
+    // 4. Assignation et Sécurité Basse
+    esc_1 = esc_1_calc;
+    esc_2 = esc_2_calc;
+    esc_3 = esc_3_calc;
+    esc_4 = esc_4_calc;
+
+    // Ralenti minimum (Idle) - Empêche les moteurs de s'arrêter en vol
     if (esc_1 < 1080) esc_1 = 1080;
     if (esc_2 < 1080) esc_2 = 1080;
     if (esc_3 < 1080) esc_3 = 1080;
     if (esc_4 < 1080) esc_4 = 1080;
-
-    // Plafond de sécurité
+    
+    // Sécurité finale (au cas où le calcul d'overshoot aurait raté un cas limite)
     if (esc_1 > MAX_THROTTLE_FLIGHT) esc_1 = MAX_THROTTLE_FLIGHT;
     if (esc_2 > MAX_THROTTLE_FLIGHT) esc_2 = MAX_THROTTLE_FLIGHT;
     if (esc_3 > MAX_THROTTLE_FLIGHT) esc_3 = MAX_THROTTLE_FLIGHT;
