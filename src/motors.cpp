@@ -21,10 +21,10 @@ void motors_mix(DroneState *drone) {
 
     // 2. Calcul du Mixage Brut (Sans limite pour l'instant)
     // On calcule en variables locales pour pouvoir analyser les dépassements
-    int esc_1_calc = throttle - (drone->pid_output_pitch * 0.5) + (drone->pid_output_roll * 0.5) - (drone->pid_output_yaw * 0.5); 
-    int esc_2_calc = throttle + (drone->pid_output_pitch * 0.5) + (drone->pid_output_roll * 0.5) + (drone->pid_output_yaw * 0.5); 
-    int esc_3_calc = throttle + (drone->pid_output_pitch * 0.5) - (drone->pid_output_roll * 0.5) - (drone->pid_output_yaw * 0.5); 
-    int esc_4_calc = throttle - (drone->pid_output_pitch * 0.5) - (drone->pid_output_roll * 0.5) + (drone->pid_output_yaw * 0.5); 
+    int esc_1_calc = throttle - (drone->pid_output_pitch) + (drone->pid_output_roll) - (drone->pid_output_yaw); 
+    int esc_2_calc = throttle + (drone->pid_output_pitch) + (drone->pid_output_roll) + (drone->pid_output_yaw); 
+    int esc_3_calc = throttle + (drone->pid_output_pitch) - (drone->pid_output_roll) - (drone->pid_output_yaw); 
+    int esc_4_calc = throttle - (drone->pid_output_pitch) - (drone->pid_output_roll) + (drone->pid_output_yaw); 
 
     // 3. Gestion de la Saturation Max (Airmode logic)
     // On cherche la commande moteur la plus élevée

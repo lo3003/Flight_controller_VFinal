@@ -6,10 +6,11 @@ float pid_i_mem_roll, pid_last_roll_d_error, pid_roll_d_filter_old;
 float pid_i_mem_pitch, pid_last_pitch_d_error, pid_pitch_d_filter_old;
 float pid_i_mem_yaw, pid_last_yaw_d_error, pid_yaw_d_filter_old;
 
-// Setpoints Base pour le filtre lissage commande
-float pid_roll_setpoint_base = 0;
-float pid_pitch_setpoint_base = 0;
-float pid_yaw_setpoint_base = 0;
+// --- CONFIGURATION DE LA REACTIVITÉ ---
+// 3.0 = Réactif (Standard YMFC, ~166deg/s)
+// 4.0 = Plus doux
+// 2.0 = Très agressif (Acro)
+#define SETPOINT_RATE_DIVIDER 3.0
 
 void pid_init() {
     pid_reset_integral();
@@ -22,53 +23,41 @@ void pid_reset_integral() {
 }
 
 void pid_compute_setpoints(DroneState *drone) {
-    // --- EXPO & RATE ROLL ---
+    // --- ROLL ---
     float input_roll = 0;
     if(drone->channel_1 > 1508) input_roll = drone->channel_1 - 1508;
     else if(drone->channel_1 < 1492) input_roll = drone->channel_1 - 1492;
     
-    // Auto Level
+    // Auto Level (Angle P)
     float level_adjust_roll = drone->angle_roll * GAIN_LEVEL;
     
-    // Calcul Cube + Scale
-    float target_roll = (input_roll * input_roll * input_roll) / 780000.0;
-    target_roll -= level_adjust_roll;
-    target_roll *= PID_SETPOINT_SCALE_INV;
-    
-    // Lissage
-    pid_roll_setpoint_base += 0.2 * (target_roll - pid_roll_setpoint_base);
-    drone->pid_setpoint_roll = pid_roll_setpoint_base;
+    // Calcul Direct (Sans lissage pour une réponse immédiate)
+    input_roll -= level_adjust_roll;
+    drone->pid_setpoint_roll = input_roll / SETPOINT_RATE_DIVIDER;
 
-    // --- EXPO & RATE PITCH ---
+    // --- PITCH ---
     float input_pitch = 0;
     if(drone->channel_2 > 1508) input_pitch = drone->channel_2 - 1508;
     else if(drone->channel_2 < 1492) input_pitch = drone->channel_2 - 1492;
     
     float level_adjust_pitch = drone->angle_pitch * GAIN_LEVEL;
     
-    float target_pitch = (input_pitch * input_pitch * input_pitch) / 780000.0;
-    target_pitch -= level_adjust_pitch;
-    target_pitch *= PID_SETPOINT_SCALE_INV;
-    
-    pid_pitch_setpoint_base += 0.2 * (target_pitch - pid_pitch_setpoint_base);
-    drone->pid_setpoint_pitch = pid_pitch_setpoint_base;
+    input_pitch -= level_adjust_pitch;
+    drone->pid_setpoint_pitch = input_pitch / SETPOINT_RATE_DIVIDER;
 
     // --- YAW ---
-    // Pas d'expo complexe sur le Yaw dans ton code original
-    if(drone->channel_3 > 1050){ 
-        if(drone->channel_4 > 1520) drone->pid_setpoint_yaw = (drone->channel_4 - 1520) * YAW_SETPOINT_SCALE_INV;
-        else if(drone->channel_4 < 1480) drone->pid_setpoint_yaw = (drone->channel_4 - 1480) * YAW_SETPOINT_SCALE_INV;
-        else drone->pid_setpoint_yaw = 0;
+    drone->pid_setpoint_yaw = 0;
+    if(drone->channel_3 > 1050){ // Si gaz actifs
+        if(drone->channel_4 > 1508) 
+            drone->pid_setpoint_yaw = (drone->channel_4 - 1508) / 3.0;
+        else if(drone->channel_4 < 1492) 
+            drone->pid_setpoint_yaw = (drone->channel_4 - 1492) / 3.0;
     }
 }
 
 void pid_compute(DroneState *drone) {
-    // TPA (0.0010 coeff)
+    // TPA (Atténuation des gains avec les gaz) - Désactivé par défaut
     float tpa_factor = 1.0;
-    if (drone->channel_3 > 1300){ // Commencer TPA plus tôt
-        float reduction = (drone->channel_3 - 1300) * 0.0006; 
-        tpa_factor = 1.0 - reduction;
-    }
 
     float p_roll = PID_P_ROLL * tpa_factor;
     float d_roll = PID_D_ROLL * tpa_factor;
@@ -78,10 +67,12 @@ void pid_compute(DroneState *drone) {
     // --- ROLL ---
     float error = drone->gyro_roll_input - drone->pid_setpoint_roll;
     pid_i_mem_roll += PID_I_ROLL * error;
+    // Anti-Windup
     if(pid_i_mem_roll > PID_MAX_ROLL) pid_i_mem_roll = PID_MAX_ROLL;
     else if(pid_i_mem_roll < -PID_MAX_ROLL) pid_i_mem_roll = -PID_MAX_ROLL;
 
     float d_err_raw = pid_last_roll_d_error - drone->gyro_roll_input;
+    // Filtre D
     float d_err_filtered = pid_roll_d_filter_old + D_FILTER_COEFF * (d_err_raw - pid_roll_d_filter_old);
     pid_roll_d_filter_old = d_err_filtered;
     pid_last_roll_d_error = drone->gyro_roll_input;

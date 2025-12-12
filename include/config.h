@@ -7,15 +7,15 @@
 
 // --- PID Gains (Soft Tune) ---
 // Roll
-#define PID_P_ROLL 3.5
-#define PID_I_ROLL 0.02
-#define PID_D_ROLL 18.0
+#define PID_P_ROLL 2
+#define PID_I_ROLL 0.002
+#define PID_D_ROLL 6
 #define PID_MAX_ROLL 400
 
 // Pitch
-#define PID_P_PITCH 3.5
-#define PID_I_PITCH 0.02
-#define PID_D_PITCH 18.0
+#define PID_P_PITCH 2
+#define PID_I_PITCH 0.002
+#define PID_D_PITCH 6
 #define PID_MAX_PITCH 400
 
 // Yaw
@@ -39,6 +39,6 @@
 
 // --- Limites de Vol ---
 #define MAX_THROTTLE_FLIGHT 1750  // Marge de sécurité
-#define GAIN_LEVEL 5.0            // Force de l'auto-level
+#define GAIN_LEVEL 10            // Force de l'auto-level
 
 #endif
