@@ -39,7 +39,6 @@ void setup() {
 }
 
 void loop() {
-    // 1. Inputs
     radio_update(&drone);
     imu_read(&drone);
 
@@ -79,10 +78,10 @@ void loop() {
     // 3. Actuation
     motors_write();
 
-    // 4. TELEMETRIE (Optimisée pour ne pas faire clignoter la LED)
+    
     // debug_counter++;
     
-    // On envoie moins souvent (toutes les 100 boucles = 0.4 sec) pour économiser le CPU
+    
     /*if(debug_counter >= 100) { 
         // Format CSV : Roll, Pitch, Gaz, CorrectionPID
         Serial.print(drone.angle_roll, 1);  // 1 chiffre après la virgule
@@ -96,8 +95,6 @@ void loop() {
         debug_counter = 0;
     }*/
 
-    // 5. Loop Time & Sécurité
-    // Si la LED s'allume brièvement ici, c'est juste au moment de l'envoi Serial, c'est acceptable.
     if(micros() - loop_timer > 4050) digitalWrite(12, HIGH);
     else digitalWrite(12, LOW);
 

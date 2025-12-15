@@ -6,10 +6,6 @@ float pid_i_mem_roll, pid_last_roll_d_error, pid_roll_d_filter_old;
 float pid_i_mem_pitch, pid_last_pitch_d_error, pid_pitch_d_filter_old;
 float pid_i_mem_yaw, pid_last_yaw_d_error, pid_yaw_d_filter_old;
 
-// --- CONFIGURATION DE LA REACTIVITÉ ---
-// 3.0 = Réactif (Standard YMFC, ~166deg/s)
-// 4.0 = Plus doux
-// 2.0 = Très agressif (Acro)
 #define SETPOINT_RATE_DIVIDER 3.0
 
 void pid_init() {

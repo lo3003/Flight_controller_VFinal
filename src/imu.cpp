@@ -4,11 +4,11 @@
 #include "imu.h"
 #include "config.h"
 
-// Variables Globales du Module
+
 int gyro_address;
 double gyro_axis_cal[4];
 
-// Tableaux bruts pour lire les données
+
 int acc_axis[4];
 int gyro_axis[4];
 int temperature;
@@ -19,26 +19,26 @@ void imu_init() {
 
     // 2. Initialisation du MPU6050
     Wire.beginTransmission(gyro_address);
-    Wire.write(0x6B); Wire.write(0x00); // Réveil
+    Wire.write(0x6B); Wire.write(0x00); 
     Wire.endTransmission();
 
     Wire.beginTransmission(gyro_address);
-    Wire.write(0x1B); Wire.write(0x08); // Échelle Gyro 500dps
+    Wire.write(0x1B); Wire.write(0x08); 
     Wire.endTransmission();
 
     Wire.beginTransmission(gyro_address);
-    Wire.write(0x1C); Wire.write(0x10); // Échelle Accel +/- 8g
+    Wire.write(0x1C); Wire.write(0x10); 
     Wire.endTransmission();
 
-    // 3. Réglage du Filtre (20Hz comme YMFC original)
+    
     Wire.beginTransmission(gyro_address);
     Wire.write(0x1A); Wire.write(0x04); 
     Wire.endTransmission();
 
-    // 4. Calibration du Gyroscope
+    
     pinMode(12, OUTPUT);
     
-    // Variable locale pour la boucle (remplace la globale cal_int)
+    
     for (int i = 0; i < 2000 ; i++){
         if(i % 15 == 0) digitalWrite(12, !digitalRead(12));
         
@@ -73,7 +73,7 @@ void imu_init() {
 }
 
 void imu_read(DroneState *drone) {
-    // 1. Lecture Capteur
+
     Wire.beginTransmission(gyro_address);
     Wire.write(0x3B);
     Wire.endTransmission();
@@ -88,13 +88,12 @@ void imu_read(DroneState *drone) {
     gyro_axis[2] = Wire.read()<<8|Wire.read();
     gyro_axis[3] = Wire.read()<<8|Wire.read();
 
-    // 2. Application de la Calibration (Offset)
-    // CORRECTION : On applique toujours l'offset car l'init est terminée
+    
     gyro_axis[1] -= gyro_axis_cal[1];
     gyro_axis[2] -= gyro_axis_cal[2];
     gyro_axis[3] -= gyro_axis_cal[3];
 
-    // 3. Réassignation des Axes selon l'EEPROM
+    //Réassignation des Axes selon l'EEPROM
     byte axis_roll_cfg = EEPROM.read(28);
     byte axis_pitch_cfg = EEPROM.read(29);
     byte axis_yaw_cfg = EEPROM.read(30);
@@ -117,7 +116,7 @@ void imu_read(DroneState *drone) {
     long acc_z_calc = acc_axis[axis_yaw_cfg & 0b00000011];
     if(axis_yaw_cfg & 0b10000000) acc_z_calc *= -1;
 
-    // 4. Filtrage
+    //Filtrage
     float gyro_roll_raw = gyro_roll * GYRO_SCALE_INV;
     float gyro_pitch_raw = gyro_pitch * GYRO_SCALE_INV;
     float gyro_yaw_raw = gyro_yaw * GYRO_SCALE_INV;
@@ -126,14 +125,14 @@ void imu_read(DroneState *drone) {
     drone->gyro_pitch_input = (drone->gyro_pitch_input * 0.7) + (gyro_pitch_raw * 0.3);
     drone->gyro_yaw_input = (drone->gyro_yaw_input * 0.7) + (gyro_yaw_raw * 0.3);
 
-    // 5. Calculs Angles Gyro
+    //Calculs Angles Gyro
     drone->angle_pitch += gyro_pitch * 0.0000611;
     drone->angle_roll += gyro_roll * 0.0000611;
     
     drone->angle_pitch -= drone->angle_roll * sin(gyro_yaw * 0.000001066);
     drone->angle_roll += drone->angle_pitch * sin(gyro_yaw * 0.000001066);
 
-    // 6. Calculs Angles Accéléromètre
+    //Calculs Angles Accéléromètre
     drone->acc_total_vector = sqrt((acc_x_calc*acc_x_calc)+(acc_y_calc*acc_y_calc)+(acc_z_calc*acc_z_calc));
     
     float angle_pitch_acc = 0, angle_roll_acc = 0;
@@ -145,13 +144,11 @@ void imu_read(DroneState *drone) {
         angle_roll_acc = asin((float)acc_x_calc/drone->acc_total_vector) * -57.296;
     }
     
-    // --- TES CORRECTIONS MANUELLES ---
+    //Corrections manuelles pour inclinaisons statiques
     angle_roll_acc += 2.0;
-    
-    // Pitch : capteur indique 4.2 -> On soustrait 4.2 pour revenir à 0
     angle_pitch_acc -= 4.2;
 
-    // 7. Fusion
+    //Fusion des capteurs (filtre complémentaire)
     drone->angle_pitch = drone->angle_pitch * 0.9996 + angle_pitch_acc * 0.0004;
     drone->angle_roll = drone->angle_roll * 0.9996 + angle_roll_acc * 0.0004;
 }

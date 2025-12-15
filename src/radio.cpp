@@ -6,12 +6,12 @@
 volatile int receiver_input_channel_1, receiver_input_channel_2, receiver_input_channel_3, receiver_input_channel_4;
 byte last_channel_1, last_channel_2, last_channel_3, last_channel_4;
 unsigned long timer_1, timer_2, timer_3, timer_4, current_time;
-byte eeprom_data[36]; // Pour la calibration stockée
+byte eeprom_data[36]; 
 
 // Variables internes pour la conversion
 int receiver_input[5]; 
 
-// Fonction interne cachée
+
 int convert_receiver_channel(byte function) {
     byte channel, reverse;
     int low, center, high, actual, difference;
@@ -43,7 +43,7 @@ void radio_init() {
     PCMSK0 |= (1 << PCINT2);
     PCMSK0 |= (1 << PCINT3);
 
-    // Charger l'EEPROM pour la calibration radio
+    
     for(int start = 0; start <= 35; start++) eeprom_data[start] = EEPROM.read(start);
 }
 
@@ -54,7 +54,7 @@ void radio_update(DroneState *drone) {
     drone->channel_4 = convert_receiver_channel(4);
 }
 
-// --- INTERRUPT SERVICE ROUTINE (ISR) ---
+
 ISR(PCINT0_vect){
   current_time = micros();
   //Channel 1
