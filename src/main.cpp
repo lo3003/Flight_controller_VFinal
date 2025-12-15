@@ -12,8 +12,7 @@ unsigned long loop_timer;
 int debug_counter = 0;
 
 void setup() {
-    // VITESSE RAPIDE (Règle ton moniteur série sur 250000 aussi !)
-    Serial.begin(250000); 
+    //Serial.begin(250000); 
     
     Wire.begin();
     TWBR = 12; 
@@ -42,7 +41,7 @@ void loop() {
     radio_update(&drone);
     imu_read(&drone);
 
-    // 2. Machine d'État
+    //Machine d'État
     switch(drone.current_mode) {
         case MODE_SAFE:
             motors_stop();
@@ -74,8 +73,6 @@ void loop() {
             if(drone.channel_3 < 1050) drone.current_mode = MODE_ARMED;
             break;
     }
-
-    // 3. Actuation
     motors_write();
 
     
@@ -83,7 +80,6 @@ void loop() {
     
     
     /*if(debug_counter >= 100) { 
-        // Format CSV : Roll, Pitch, Gaz, CorrectionPID
         Serial.print(drone.angle_roll, 1);  // 1 chiffre après la virgule
         Serial.print(" , ");
         Serial.print(drone.angle_pitch, 1);
