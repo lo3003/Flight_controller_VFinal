@@ -146,8 +146,8 @@ void imu_read(DroneState *drone) {
     }
     
     // TES CORRECTIONS D'OFFSET (GARDE-LES)
-    angle_roll_acc += 0;
-    angle_pitch_acc -= 0;
+    angle_roll_acc += 1;
+    angle_pitch_acc -= 2.5;
 
     drone->angle_pitch = drone->angle_pitch * 0.9996 + angle_pitch_acc * 0.0004;
     drone->angle_roll = drone->angle_roll * 0.9996 + angle_roll_acc * 0.0004;

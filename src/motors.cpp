@@ -14,8 +14,11 @@ void motors_stop() {
 }
 
 void motors_mix(DroneState *drone) {
-    int throttle = drone->channel_3;
+    int raw_throttle = drone->channel_3;
     
+    //réduction de la plage de gaz pour avoir une meilleure maniabilité
+    int throttle = 1000 + (raw_throttle - 1000) * 0.85;
+
     //limite de gaz
     if (throttle > MAX_THROTTLE_FLIGHT) throttle = MAX_THROTTLE_FLIGHT;
 

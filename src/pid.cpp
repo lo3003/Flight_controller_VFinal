@@ -6,7 +6,7 @@ float pid_i_mem_roll, pid_last_roll_d_error, pid_roll_d_filter_old;
 float pid_i_mem_pitch, pid_last_pitch_d_error, pid_pitch_d_filter_old;
 float pid_i_mem_yaw, pid_last_yaw_d_error, pid_yaw_d_filter_old;
 
-#define SETPOINT_RATE_DIVIDER 4.0
+#define SETPOINT_RATE_DIVIDER 6.0
 
 void pid_init() {
     pid_reset_integral();
