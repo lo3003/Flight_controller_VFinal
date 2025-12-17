@@ -30,7 +30,7 @@ void motors_mix(DroneState *drone) {
     if(esc_3_calc > max_esc) max_esc = esc_3_calc;
     if(esc_4_calc > max_esc) max_esc = esc_4_calc;
 
-    // Si un moteur demande plus que le max autorisé, on réduit tout le monde
+    // Si un moteur demande plus que le max autorisé on réduit tout le monde
     if(max_esc > MAX_THROTTLE_FLIGHT) {
         int overshoot = max_esc - MAX_THROTTLE_FLIGHT;
         esc_1_calc -= overshoot;

@@ -6,15 +6,15 @@
 #define LOW_BATTERY_LIMIT 1000
 
 
-#define PID_P_ROLL 2
-#define PID_I_ROLL 0.002
-#define PID_D_ROLL 6
+#define PID_P_ROLL 1.5
+#define PID_I_ROLL 0.005
+#define PID_D_ROLL 3
 #define PID_MAX_ROLL 400
 
 // Pitch
-#define PID_P_PITCH 2
-#define PID_I_PITCH 0.002
-#define PID_D_PITCH 6
+#define PID_P_PITCH 1.5
+#define PID_I_PITCH 0.005
+#define PID_D_PITCH 3
 #define PID_MAX_PITCH 400
 
 // Yaw
@@ -35,7 +35,7 @@
 #define YAW_SETPOINT_SCALE_INV (1.0 / 3.0) 
 
 
-#define MAX_THROTTLE_FLIGHT 1750  
-#define GAIN_LEVEL 10            
+#define MAX_THROTTLE_FLIGHT 1850  
+#define GAIN_LEVEL 2              
 
 #endif

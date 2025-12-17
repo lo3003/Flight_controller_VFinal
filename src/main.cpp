@@ -12,15 +12,17 @@ unsigned long loop_timer;
 int debug_counter = 0;
 
 void setup() {
-    //Serial.begin(250000); 
+    Serial.begin(250000); 
     
     Wire.begin();
     TWBR = 12; 
     
+    motors_init();
+
     radio_init();
     imu_init();
     pid_init();
-    motors_init();
+    
     
     drone.current_mode = MODE_SAFE;
     
@@ -76,7 +78,7 @@ void loop() {
     motors_write();
 
     
-    // debug_counter++;
+    //debug_counter++;
     
     
     /*if(debug_counter >= 100) { 
